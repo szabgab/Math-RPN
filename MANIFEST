@@ -3,3 +3,4 @@ MANIFEST
 Makefile.PL
 lib/Math/RPN.pm
 t/01-test.t
+t/03-warn.t
