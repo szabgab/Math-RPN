@@ -1,26 +1,10 @@
 #!/usr/bin/perl
-#
-# @(#)test.pl 1.8 01/07/29
-#
-# Test program for Math::RPN Module
-#
-#
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
+use strict;
+use warnings;
 
-######################### We start with some black magic to print on failure.
+use Test::More;
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
-
-BEGIN { $| = 1; print "1..18\n"; }
-END {print "not ok 1\n" unless $loaded;}
 use Math::RPN;
-$loaded = 1;
-print "ok 1\n";
-
-######################### End of black magic.
-
 
 #
 # Tests are structured as a list.  Even numbered elements in the
@@ -37,7 +21,7 @@ print "ok 1\n";
 #
 # did module load?						# 1
 #
-@tests=(
+my @tests = (
 #               [8]    [8][5] [40] [20] [2]     [64] [8]
 	"8","5,3,+,  8,3,-     ,*,  2,/, 3,%, 6, POW, SQRT",	#  2
 #	Get the SIN of 90 degrees (First convert 90 degrees to radians)
@@ -90,54 +74,31 @@ print "ok 1\n";
 	
 );
 
-my $testno=2;
-my $testok=1;
-my $testbad=0;
-while (@tests)
-{
-	my $expect=shift(@tests);
-	my $expr=shift(@tests);
+plan tests => @tests/2;
 
-	if ($expect eq "ERR")
-	{
-		print	"The next error message is expected.  If the test \n".
-			"reports OK, then everything is well.\n";
+while (@tests) {
+	my $expect = shift @tests;
+	my $expr   = shift @tests;
+
+	if ($expect eq "ERR") {
+		diag ("The next error message is expected.  If the test reports OK, then everything is well.");
 	}
 
-	my $result=rpn($expr);
+	my $result = rpn($expr);
 
-	if ($expect eq "now")
-	{
-		$expect=time();
-	}
-	elsif ($expect eq "ERR")
-	{
-		$expect=$result unless defined($result);
-	}
-	elsif ($expect =~/(\d+)<x<(\d+)/)
-	{
-		$expect=$result if ($result > $1 && $result < $2);
-	}
-	else
-	{
+	if ($expect eq "now") {
+		$expect = time();
+	} elsif ($expect eq "ERR") {
+		$expect = $result unless defined $result;
+	} elsif ($expect =~ /(\d+)<x<(\d+)/) {
+		$expect = $result if ($result > $1 && $result < $2);
+	} else {
 		# Factor rounding errors on different platforms out of results
-		$expect=(int($expect*10000+.5)/10000);
-		$result=(int($result*10000+.5)/10000);
+		$expect = (int($expect*10000+.5)/10000);
+		$result = (int($result*10000+.5)/10000);
 	}
 
-	if ($result == $expect)
-	{
-		print "ok $testno ($result)\n";
-		$testok++;
-	}
-	else
-	{
-		print "not ok $testno (expected $expect, got $result)\n";
-		$testbad++;
-	}
-	$testno++;
+	is $result, $expect;
 }
-$testno--;
 
-print "$testok out of $testno succeeded ($testbad bad), ", $testok/$testno*100,"% OK.\n";
 
