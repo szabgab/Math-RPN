@@ -18,23 +18,15 @@ package Math::RPN;
 use 5.006;
 use strict;
 use warnings;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
+use vars qw($VERSION @ISA @EXPORT);
 
 require Exporter;
 
 @ISA = qw(Exporter);
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-@EXPORT = qw(
-	rpn
-);
-$VERSION = do { my @r = (q$1.8$ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r }; # must be all one line, for MakeMaker
+@EXPORT = qw( rpn );
+$VERSION = '1.08';
 
-# Preloaded methods go here.
-
-sub rpn
-{
+sub rpn {
 	my $convr=join(",",@_);		# Get all the expressions
 	$convr=~s/,,//g;		# In case someone gave us extra ,'s
 	my @stack=();
@@ -463,56 +455,43 @@ sub rpn
 			"expr $convr left ".
 			join(",", @stack)." (right one used).");
 	}
-	if (wantarray)
-	{
+	if (wantarray) {
 		return(@stack);
-	}
-	else
-	{
+	} else {
 		return(pop(@stack));
 	}
 }
 
-sub logmsg
-{
-        my $severity;
-        my $message;
-
-        if (scalar(@_) > 1)
-        {
-                $severity=shift;
-        }
-        else
-        {
-                $severity="err";      # Default to LOG_ERR severity
-        }
-
-        $message=join("", @_);
-        $message=~s/\r/\\r/g;
-        $message=~s/\n/\\n/g;
-        warn "$0 pid[$$]: $severity: $message at " . localtime() ."\n";
+sub logmsg {
+	my $severity;
+	my $message;
+	
+	if (scalar(@_) > 1) {
+		$severity = shift;
+	} else {
+		$severity = "err";      # Default to LOG_ERR severity
+	}
+	
+	$message = join("", @_);
+	$message =~ s/\r/\\r/g;
+	$message =~ s/\n/\\n/g;
+	warn "$0 pid[$$]: $severity: $message at " . localtime() ."\n";
 }
 
-sub stackcheck
-{
-	my $required=shift;
-	my $sp=shift;
-	my $completed=shift;
-	my $current=shift;
-	my $todo=shift;
-	my @stack=@$sp;
+sub stackcheck {
+	my ($required, $sp, $completed, $current, $todo) = @_;
 
-	if (scalar(@stack)<$required)
-	{
-		my $msg="Stack Underflow in ";
-		logmsg('err', $msg,
+	my @stack = @$sp;
+
+	if (@stack < $required) {
+		logmsg('err', "Stack Underflow in ",
 			join(",", (@$completed)),
 			",<<<$current>>>,",
 			join(",", (@$todo))
 		);
-		return(undef);
+		return;
 	}
-	return(scalar(@stack));
+	return scalar @stack;
 }
 		
 1;
