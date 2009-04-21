@@ -22,478 +22,406 @@ use vars qw($VERSION @ISA @EXPORT);
 
 require Exporter;
 
-@ISA = qw(Exporter);
-@EXPORT = qw( rpn );
+@ISA     = qw(Exporter);
+@EXPORT  = qw( rpn );
 $VERSION = '1.08';
 
 sub rpn {
-	my $convr=join(",",@_);		# Get all the expressions
-	$convr=~s/,,//g;		# In case someone gave us extra ,'s
-	my @stack=();
-	my @ops=split(/,/, $convr);
-	my $inbrace=0;
-	my $bracexp="";
-	my @completed=();
-	while(@ops)
-	{
-		$_=uc(shift(@ops));
-		s/\s+//g;	# Eliminate unneeded spaces
-		if ($_ eq "{")
-		{
-			if ($inbrace)
-			{
-				logmsg('err', "Cannot nest braces expr ",
-					join(",", @completed),
-					",<<<$_>>>,",
-					join(",", @ops)
-				);
-				last;
-			}
-			$inbrace++;
-			$bracexp="";
-			next;
-		}
-		elsif ($_ eq "}")
-		{
-			unless ($inbrace)
-			{
-				logmsg('err', "Unexpected Right Brace ",
-					join(",", @completed),
-					",<<<$_>>>,",
-					join(",", @ops)
-					);
-				last;
-			}
-			$inbrace--;
-			$bracexp=~s/,$//;	# Strip trailing comma if any
-			push(@stack, $bracexp);
-			next;
-		}
-		if ($inbrace)
-		{
-			$bracexp.=$_.",";
-			next;
-		}
+    my $convr = join( ",", @_ );    # Get all the expressions
+    $convr =~ s/,,//g;              # In case someone gave us extra ,'s
+    my @stack     = ();
+    my @ops       = split( /,/, $convr );
+    my $inbrace   = 0;
+    my $bracexp   = "";
+    my @completed = ();
+    while (@ops) {
+        $_ = uc( shift(@ops) );
+        s/\s+//g;                   # Eliminate unneeded spaces
+        if ( $_ eq "{" ) {
+            if ($inbrace) {
+                logmsg(
+                    'err',
+                    "Cannot nest braces expr ",
+                    join( ",", @completed ),
+                    ",<<<$_>>>,", join( ",", @ops )
+                );
+                last;
+            }
+            $inbrace++;
+            $bracexp = "";
+            next;
+        }
+        elsif ( $_ eq "}" ) {
+            unless ($inbrace) {
+                logmsg(
+                    'err',
+                    "Unexpected Right Brace ",
+                    join( ",", @completed ),
+                    ",<<<$_>>>,", join( ",", @ops )
+                );
+                last;
+            }
+            $inbrace--;
+            $bracexp =~ s/,$//;    # Strip trailing comma if any
+            push( @stack, $bracexp );
+            next;
+        }
+        if ($inbrace) {
+            $bracexp .= $_ . ",";
+            next;
+        }
 
-		if ($_ eq "+" || $_ eq "ADD")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			push(@stack, pop(@stack)+pop(@stack));
-		}
-		elsif ($_ eq "++" || $_ eq "INCR")
-		{
-			unless (stackcheck(1, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			push(@stack, pop(@stack)+1);
-		}
-		elsif ($_ eq "-" || $_ eq "SUB")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, $v2-$v1);
-		}
-		elsif ($_ eq "--" || $_ eq "DECR")
-		{
-			unless (stackcheck(1, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			push(@stack, pop(@stack)-1);
-		}
-		elsif ($_ eq "\*" || $_ eq "MUL")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			push(@stack, pop(@stack)*pop(@stack));
-		}
-		elsif ($_ eq "\/" || $_ eq "DIV")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, $v2/$v1);
-		}
-		elsif ($_ eq "%" || $_ eq "MOD")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, $v2%$v1);
-		}
-		elsif ($_ eq "POW")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, $v2 ** $v1);
-		}
-		elsif ($_ eq "SQRT")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,sqrt(pop(@stack)));
-		}
-		elsif ($_ eq "ABS")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,abs(pop(@stack)));
-		}
-		elsif ($_ eq "&" || $_ eq "AND")
-		{
-                        unless(stackcheck(2, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			my $v1=int(pop(@stack));
-			my $v2=int(pop(@stack));
-			push(@stack,($v1&$v2));
-		}
-		elsif ($_ eq "|" || $_ eq "OR")
-		{
-                        unless(stackcheck(2, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,(int(pop(@stack)) | int(pop(@stack))));
-		}
-# Added XOR, but PERL's xor seems broken... Experimental.
-		elsif ($_ eq "XOR")
-		{
-                        unless(stackcheck(2, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,(int(pop(@stack)) xor int(pop(@stack))));
-		}
-		elsif ($_ eq "!" || $_ eq "NOT")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,!(int(pop(@stack))));
-		}
-		elsif ($_ eq "~")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,~(int(pop(@stack))));
-		}
-		elsif ($_ eq "SIN")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,sin(pop(@stack)));
-		}
-		elsif ($_ eq "COS")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,cos(pop(@stack)));
-		}
-		elsif ($_ eq "TAN")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			my $v1=pop(@stack);
-			push(@stack,(sin($v1)/cos($v1)));
-		}
-		elsif ($_ eq "LOG")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,log(pop(@stack)));
-		}
-		elsif ($_ eq "EXP")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,exp(pop(@stack)));
-		}
-		elsif ($_ eq "INT")
-		{
-                        unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-                        {
-                                @stack=(undef);
-                                last;
-                        }
-			push(@stack,int(pop(@stack)));
-		}
-		elsif ($_ eq "<" || $_ eq "LT")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, ($v2<$v1 ? 1 : 0));
-		}
-		elsif ($_ eq "<=" || $_ eq "LE")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, ($v2<=$v1 ? 1 : 0));
-		}
-		elsif ($_ eq "=" || $_ eq "==" || $_ eq "EQ")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, ($v2==$v1 ? 1 : 0));
-		}
-		elsif ($_ eq ">=" || $_ eq "GT")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, ($v2>$v1 ? 1 : 0));
-		}
-		elsif ($_ eq ">" || $_ eq "GE")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, ($v2>=$v1 ? 1 : 0));
-		}
-		elsif ($_ eq "!=" || $_ eq "NE")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1=pop(@stack);
-			my $v2=pop(@stack);
-			push(@stack, ($v2!=$v1 ? 1 : 0));
-		}
-		elsif ($_ eq "IF")
-		{
-			unless (stackcheck(3, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $el=pop(@stack);
-			my $th=pop(@stack);
-			my $co=pop(@stack);
-			my $ve=($co ? $th : $el);
-			if ($ve =~ /,/)
-			{
-				# Execute brace-enclosed expression
-				@stack=rpn(join(",", @stack, $ve));
-			}
-			else
-			{
-				push(@stack, $ve);
-			}
-		}
-		elsif ($_ eq "DUP")
-		{
-			unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1 = pop(@stack);
-			push(@stack, $v1, $v1);
-		}
-		elsif ($_ eq "EXCH")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1 = pop(@stack);
-			my $v2 = pop(@stack);
-			push(@stack, $v1, $v2);
-		}
-		elsif ($_ eq "POP")
-		{
-			unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			pop(@stack);
-		}
-		elsif ($_ eq "MIN")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1 = pop(@stack);
-			my $v2 = pop(@stack);
-			push(@stack, ($v1<$v2 ? $v1 : $v2));
-		}
-		elsif ($_ eq "MAX")
-		{
-			unless (stackcheck(2, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			my $v1 = pop(@stack);
-			my $v2 = pop(@stack);
-			push(@stack, ($v1>$v2 ? $v1 : $v2));
-		}
-		elsif ($_ eq "TIME")
-		{
-			push(@stack, time());
-		}
-		elsif ($_ eq "RAND")
-		{
-			push(@stack, rand());
-		}
-		elsif ($_ eq "LRAND")
-		{
-			unless(stackcheck(1, \@stack, \@completed, $_, \@ops))
-			{
-				@stack=(undef);
-				last;
-			}
-			push(@stack, rand(pop(@stack)));
-		}
-		else
-		{
-			push(@stack, $_);
-		}
+        if ( $_ eq "+" || $_ eq "ADD" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, pop(@stack) + pop(@stack) );
+        }
+        elsif ( $_ eq "++" || $_ eq "INCR" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, pop(@stack) + 1 );
+        }
+        elsif ( $_ eq "-" || $_ eq "SUB" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, $v2 - $v1 );
+        }
+        elsif ( $_ eq "--" || $_ eq "DECR" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, pop(@stack) - 1 );
+        }
+        elsif ( $_ eq "\*" || $_ eq "MUL" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, pop(@stack) * pop(@stack) );
+        }
+        elsif ( $_ eq "\/" || $_ eq "DIV" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, $v2 / $v1 );
+        }
+        elsif ( $_ eq "%" || $_ eq "MOD" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, $v2 % $v1 );
+        }
+        elsif ( $_ eq "POW" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, $v2**$v1 );
+        }
+        elsif ( $_ eq "SQRT" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, sqrt( pop(@stack) ) );
+        }
+        elsif ( $_ eq "ABS" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, abs( pop(@stack) ) );
+        }
+        elsif ( $_ eq "&" || $_ eq "AND" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = int( pop(@stack) );
+            my $v2 = int( pop(@stack) );
+            push( @stack, ( $v1 & $v2 ) );
+        }
+        elsif ( $_ eq "|" || $_ eq "OR" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, ( int( pop(@stack) ) | int( pop(@stack) ) ) );
+        }
 
-		# Record that we've completed the operation (for diagnostics).
-		push(@completed, $_);
-	}
+        # Added XOR, but PERL's xor seems broken... Experimental.
+        elsif ( $_ eq "XOR" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, ( int( pop(@stack) ) xor int( pop(@stack) ) ) );
+        }
+        elsif ( $_ eq "!" || $_ eq "NOT" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, !( int( pop(@stack) ) ) );
+        }
+        elsif ( $_ eq "~" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, ~( int( pop(@stack) ) ) );
+        }
+        elsif ( $_ eq "SIN" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, sin( pop(@stack) ) );
+        }
+        elsif ( $_ eq "COS" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, cos( pop(@stack) ) );
+        }
+        elsif ( $_ eq "TAN" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            push( @stack, ( sin($v1) / cos($v1) ) );
+        }
+        elsif ( $_ eq "LOG" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, log( pop(@stack) ) );
+        }
+        elsif ( $_ eq "EXP" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, exp( pop(@stack) ) );
+        }
+        elsif ( $_ eq "INT" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, int( pop(@stack) ) );
+        }
+        elsif ( $_ eq "<" || $_ eq "LT" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v2 < $v1 ? 1 : 0 ) );
+        }
+        elsif ( $_ eq "<=" || $_ eq "LE" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v2 <= $v1 ? 1 : 0 ) );
+        }
+        elsif ( $_ eq "=" || $_ eq "==" || $_ eq "EQ" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v2 == $v1 ? 1 : 0 ) );
+        }
+        elsif ( $_ eq ">=" || $_ eq "GT" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v2 > $v1 ? 1 : 0 ) );
+        }
+        elsif ( $_ eq ">" || $_ eq "GE" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v2 >= $v1 ? 1 : 0 ) );
+        }
+        elsif ( $_ eq "!=" || $_ eq "NE" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v2 != $v1 ? 1 : 0 ) );
+        }
+        elsif ( $_ eq "IF" ) {
+            unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $el = pop(@stack);
+            my $th = pop(@stack);
+            my $co = pop(@stack);
+            my $ve = ( $co ? $th : $el );
+            if ( $ve =~ /,/ ) {
 
-	# OK... Expression executed, let's return the results.
+                # Execute brace-enclosed expression
+                @stack = rpn( join( ",", @stack, $ve ) );
+            }
+            else {
+                push( @stack, $ve );
+            }
+        }
+        elsif ( $_ eq "DUP" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            push( @stack, $v1, $v1 );
+        }
+        elsif ( $_ eq "EXCH" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, $v1, $v2 );
+        }
+        elsif ( $_ eq "POP" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            pop(@stack);
+        }
+        elsif ( $_ eq "MIN" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v1 < $v2 ? $v1 : $v2 ) );
+        }
+        elsif ( $_ eq "MAX" ) {
+            unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            my $v1 = pop(@stack);
+            my $v2 = pop(@stack);
+            push( @stack, ( $v1 > $v2 ? $v1 : $v2 ) );
+        }
+        elsif ( $_ eq "TIME" ) {
+            push( @stack, time() );
+        }
+        elsif ( $_ eq "RAND" ) {
+            push( @stack, rand() );
+        }
+        elsif ( $_ eq "LRAND" ) {
+            unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) ) {
+                @stack = (undef);
+                last;
+            }
+            push( @stack, rand( pop(@stack) ) );
+        }
+        else {
+            push( @stack, $_ );
+        }
 
-	unless(@stack)
-	{
-		@stack=(undef);
-		logmsg('err', "Stack underflow for expr ".
-			"$convr, no value at end.");
-	}
-	elsif ($#stack > 0 && wantarray==0)
-	{
-		logmsg('warning', "Extra values left on stack for ".
-			"expr $convr left ".
-			join(",", @stack)." (right one used).");
-	}
-	if (wantarray) {
-		return(@stack);
-	} else {
-		return(pop(@stack));
-	}
+        # Record that we've completed the operation (for diagnostics).
+        push( @completed, $_ );
+    }
+
+    # OK... Expression executed, let's return the results.
+
+    unless (@stack) {
+        @stack = (undef);
+        logmsg( 'err',
+            "Stack underflow for expr " . "$convr, no value at end." );
+    }
+    elsif ( $#stack > 0 && wantarray == 0 ) {
+        logmsg( 'warning',
+                  "Extra values left on stack for "
+                . "expr $convr left "
+                . join( ",", @stack )
+                . " (right one used)." );
+    }
+    if (wantarray) {
+        return (@stack);
+    }
+    else {
+        return ( pop(@stack) );
+    }
 }
 
 sub logmsg {
-	my $severity;
-	my $message;
-	
-	if (scalar(@_) > 1) {
-		$severity = shift;
-	} else {
-		$severity = "err";      # Default to LOG_ERR severity
-	}
-	
-	$message = join("", @_);
-	$message =~ s/\r/\\r/g;
-	$message =~ s/\n/\\n/g;
-	warn "$0 pid[$$]: $severity: $message at " . localtime() ."\n";
+    my $severity;
+    my $message;
+
+    if ( scalar(@_) > 1 ) {
+        $severity = shift;
+    }
+    else {
+        $severity = "err";    # Default to LOG_ERR severity
+    }
+
+    $message = join( "", @_ );
+    $message =~ s/\r/\\r/g;
+    $message =~ s/\n/\\n/g;
+    warn "$0 pid[$$]: $severity: $message at " . localtime() . "\n";
 }
 
 sub stackcheck {
-	my ($required, $sp, $completed, $current, $todo) = @_;
+    my ( $required, $sp, $completed, $current, $todo ) = @_;
 
-	my @stack = @$sp;
+    my @stack = @$sp;
 
-	if (@stack < $required) {
-		logmsg('err', "Stack Underflow in ",
-			join(",", (@$completed)),
-			",<<<$current>>>,",
-			join(",", (@$todo))
-		);
-		return;
-	}
-	return scalar @stack;
+    if ( @stack < $required ) {
+        logmsg(
+            'err',
+            "Stack Underflow in ",
+            join( ",", (@$completed) ),
+            ",<<<$current>>>,", join( ",", (@$todo) )
+        );
+        return;
+    }
+    return scalar @stack;
 }
-		
+
 1;
 __END__
 
