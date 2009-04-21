@@ -489,7 +489,7 @@ sub logmsg
         $message=join("", @_);
         $message=~s/\r/\\r/g;
         $message=~s/\n/\\n/g;
-        print STDERR "$0 pid[$$]: $severity: $message at ", scalar localtime, "\n";
+        warn "$0 pid[$$]: $severity: $message at " . localtime() ."\n";
 }
 
 sub stackcheck

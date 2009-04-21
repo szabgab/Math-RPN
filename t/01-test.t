@@ -44,15 +44,9 @@ my @tests = (
 #	     (18/6-> 3 3 5->3 5->15 15 3->15 5->5 15->5 5 3->5 15->15)
 	"15","6,18,EXCH,DIV,DUP,5,MAX,MUL,DUP,3,DIV,EXCH,POP,DUP,3,MUL,MAX",
 								# 15
-#	Test time
-	"now","TIME",						# 16
-
 #	Complex IF (if with brace constructs)
 	"6000","5,3,GT,{,10,20,30,*,*,},{,1,2,3,*,*,},IF",	# 17
 	"6","5,3,LT,{,10,20,30,*,*,},{,1,2,3,*,*,},IF",		# 18
-
-#	Should produce a stack underflow
-	"ERR","5,3,POP,POP,POP,5,3,*",				# 19
 
 #	Functions added in version 1.05
 	"5", "-5,ABS",						# 20
@@ -74,23 +68,17 @@ my @tests = (
 	
 );
 
-plan tests => @tests/2;
+plan tests => 1 + @tests/2;
+
+is(rpn('TIME'), time, 'time???');
 
 while (@tests) {
 	my $expect = shift @tests;
 	my $expr   = shift @tests;
 
-	if ($expect eq "ERR") {
-		diag ("The next error message is expected.  If the test reports OK, then everything is well.");
-	}
-
 	my $result = rpn($expr);
 
-	if ($expect eq "now") {
-		$expect = time();
-	} elsif ($expect eq "ERR") {
-		$expect = $result unless defined $result;
-	} elsif ($expect =~ /(\d+)<x<(\d+)/) {
+	if ($expect =~ /(\d+)<x<(\d+)/) {
 		$expect = $result if ($result > $1 && $result < $2);
 	} else {
 		# Factor rounding errors on different platforms out of results
