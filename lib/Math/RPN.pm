@@ -15,6 +15,7 @@
 
 package Math::RPN;
 
+use 5.006;
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
