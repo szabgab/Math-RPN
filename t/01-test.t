@@ -60,15 +60,18 @@ my @tests = (
 	"1", "0,NOT",						# 28
 	"-3.38051500624659", "5,TAN",				# 29
 	"5", "2.33242123,3.123123142312,+,INT",			# 30
-	"0<x<1","RAND",						# 31
-	"0<x<100","100,LRAND",					# 32
 #	"1", "4,5,xor",						# 33
 	"0", "-1,~",						# 34
 	"16384", "16384,~,~"					# 35
 	
 );
 
-plan tests => 1 + @tests/2;
+my %rand = (
+	"RAND"      => "0<x<1",
+	"100,LRAND" => "0<x<100",
+);
+
+plan tests => 1 + 2 * keys(%rand) + @tests/2;
 
 is(rpn('TIME'), time, 'time???');
 
@@ -78,15 +81,16 @@ while (@tests) {
 
 	my $result = rpn($expr);
 
-	if ($expect =~ /(\d+)<x<(\d+)/) {
-		$expect = $result if ($result > $1 && $result < $2);
-	} else {
-		# Factor rounding errors on different platforms out of results
-		$expect = (int($expect*10000+.5)/10000);
-		$result = (int($result*10000+.5)/10000);
-	}
-
+	# Factor rounding errors on different platforms out of results
+	$expect = int($expect*10000+.5) / 10000;
+	$result = int($result*10000+.5) / 10000;
 	is $result, $expect;
 }
+foreach my $expr (keys %rand) {
+	my $result = rpn($expr);
 
+	my ($lower, $upper) = split /<x</, $rand{$expr};
+	cmp_ok($result, '>', $lower);
+	cmp_ok($result, '<', $upper);
+}
 
