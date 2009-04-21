@@ -1,5 +1,5 @@
 Changes
 MANIFEST
 Makefile.PL
-RPN.pm
-test.pl
+lib/Math/RPN.pm
+t/01-test.t
