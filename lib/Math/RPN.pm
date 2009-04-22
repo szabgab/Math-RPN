@@ -1,18 +1,3 @@
-#!/usr/bin/perl
-#
-# Math::RPN Package for Perl version 5 and later.
-#
-# Complete POD documentation at end.
-#
-# @(#)RPN.pm 1.8 01/07/29 Copyright (C) 2001 Owen DeLong, All rights reserved.
-#
-# Distributed under the standard PERL license, which is incorporated
-# herein by reference.
-#
-# All distributions of this software must contain this copyright
-# notice and license.
-#
-
 package Math::RPN;
 
 use 5.006;
@@ -432,13 +417,18 @@ RPN - Perl extension for Reverse Polish Math Expression Evaluation
 =head1 SYNOPSIS
 
   use Math::RPN;
-  $value=rpn(expr...);
-  @array=rpn(expr...);
+  $value = rpn(expr...);
+  @array = rpn(expr...);
 
-  expr... is one or more scalars or lists of scalars which contain
-  RPN expressions.  An RPN expression is a series of numbers and/or
-  operators separated by commas.  (commas are only required within
-  scalars).
+expr... is one or more scalars or lists of scalars which contain
+RPN expressions.  An RPN expression is a series of numbers and/or
+operators separated by commas.  (commas are only required within
+scalars).
+
+So for example:
+
+  rpn(qw(1 2 +))       is 3
+  rpn(qw(1 2 + 3 *))   is 9
 
 =head1 DESCRIPTION
 
@@ -654,8 +644,16 @@ appropriate.
 
 Owen DeLong, owen@delong.com
 
-=head1 SEE ALSO
+=head1 COPYRIGHT
 
-perl(1).
+@(#)RPN.pm 1.8 01/07/29 Copyright (C) 2001 Owen DeLong, All rights reserved.
+
+=head1 LICENSE
+
+This is free software.
+Distributed under the same license as Perl 5.10
+
+All distributions of this software must contain this copyright
+notice and license.
 
 =cut
