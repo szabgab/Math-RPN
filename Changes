@@ -62,3 +62,8 @@ Revision history for Perl extension RPN.
 1.08  Sun Jul 29 12:29:00 2001
 	- Should have tested the POD before checking it in.  (!)
 
+
+1.09 2009.04.22
+    - Maintainership received by Gabor Szabo
+    - Testing framework changed to Test::More
+

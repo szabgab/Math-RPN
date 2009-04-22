@@ -9,7 +9,7 @@ require Exporter;
 
 @ISA     = qw(Exporter);
 @EXPORT  = qw( rpn );
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 sub rpn {
     my $convr = join( ",", @_ );    # Get all the expressions
@@ -642,11 +642,15 @@ appropriate.
 
 =head1 AUTHOR
 
-Owen DeLong, owen@delong.com
+Owen DeLong, owen@delong.com L<http://www.delong.com/>
+
+=head1 MAINTAINER
+
+Gabor Szabo, szabgab@gmail.com L<http://szabgab.com/>
 
 =head1 COPYRIGHT
 
-@(#)RPN.pm 1.8 01/07/29 Copyright (C) 2001 Owen DeLong, All rights reserved.
+Copyright (C) 2001 Owen DeLong, All rights reserved.
 
 =head1 LICENSE
 
