@@ -150,8 +150,6 @@ sub rpn {
             }
             push( @stack, ( int( pop(@stack) ) | int( pop(@stack) ) ) );
         }
-
-        # Added XOR, but Perl's xor seems broken... Experimental.
         elsif ( $_ eq "XOR" ) {
             unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
                 @stack = (undef);
@@ -425,10 +423,21 @@ RPN expressions.  An RPN expression is a series of numbers and/or
 operators separated by commas.  (commas are only required within
 scalars).
 
-So for example:
+See EXAMPLES
 
-  rpn(qw(1 2 +))       is 3
-  rpn(qw(1 2 + 3 *))   is 9
+=head1 EXAMPLES
+
+The following are a few examples of RPN expressions for common tasks
+and to help demonstrate the syntax used in the RPN evaluator...
+
+    100,9,*,5,/,32,+	Convert 100 degrees C to 212 degrees F
+			(100*9/5+32)
+
+    5,3,LT,100,500,IF	Yields 500
+			(5!<3=0,100,500,IF==500, the "else" clause)
+
+  rpn(1, 2, '+')           is the same as 1+2   that returns 3
+  rpn(1, 2, '+', 3, '*')   is the same as 1+2*3 that returns 9
 
 =head1 DESCRIPTION
 
@@ -529,7 +538,8 @@ The following operators are supported in the RPN evaluator:
        &,AND           [a][b]->[a&b]
        |,OR            [a][b]->[a|b]
        !,NOT           [a]->(a==0 ? [1] : [0])
-       ~               [a]->(a xor -1) (Inverts all the bits in a)
+       XOR             [a][b]=>[a xor b] (exclusive or)
+       ~               [a]->(a ^ -1) (Inverts all the bits in a)
 
        <,LT            [a][b]->(a<b ? [1] : [0])
        <=,LE           [a][b]->(a<=b ? [1] : [0])
@@ -575,24 +585,6 @@ evaluation.  First, the IF would be true because 1, so {,5,3,+,10,*,}
 would be evaluated and the result placed on the stack.
 
 
-The boolean operator xor is incorporated into the code, but is not
-tested.  It is believed at this time that the underlying xor functionality
-in Perl may be broken, so the operator is considered strictly experimental.
-Use it at your own risk.  The xor operator is not otherwise documented.
-
-
-=head1 EXAMPLES
-
-The following are a few examples of RPN expressions for common tasks
-and to help demonstrate the syntax used in the RPN evaluator...
-
-    100,9,*,5,/,32,+	Convert 100 degrees C to 212 degrees F
-			(100*9/5+32)
-
-    5,3,LT,100,500,IF	Yields 500
-			(5!<3=0,100,500,IF==500, the "else" clause)
-
-
 =head1 REFERENCE
 
 The following symbols and are used in the description of the RPN operators.
@@ -603,6 +595,10 @@ appropriate.
     SYMBOL	CATEGORY	Meaning
       ^		(MATH)		Power of (x^y is X to the power of Y,
 				x^2 is X Squared, etc.)
+
+WARNING: ^ is marked as poser here while in perl ** marks "power" and ^ is
+the bitwise xor. There might be some changes in this module later on to
+straigthen this out.
 
       %		(MATH)		Modulus, or Division Remainder
 

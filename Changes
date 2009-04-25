@@ -1,5 +1,9 @@
 Revision history for Perl extension RPN.
 
+    - Some documentation cleanup.
+    - The warning about XOR removed, tests added
+    - Warning about ^ being "power" and bitwise xor is added.
+
 1.09 2009.04.22
     - Maintainership received by Gabor Szabo
     - Testing framework changed to Test::More
