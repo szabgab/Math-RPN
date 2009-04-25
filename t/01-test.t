@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use Test::NoWarnings;
 
 use Math::RPN;
 
@@ -36,6 +37,7 @@ my %tests = (
 #	Complex IF (if with brace constructs)
 	"5,3,GT,{,10,20,30,*,*,},{,1,2,3,*,*,},IF" => 6000,
 	"5,3,LT,{,10,20,30,*,*,},{,1,2,3,*,*,},IF" => 6,
+	"1,{,5,3,+,10,*,},{,1,2,3,+,+,},IF"  => 80,
 
 #	Functions added in version 1.05
 	"-5,ABS" => 5,
@@ -68,7 +70,7 @@ my %rand = (
 );
 
 
-plan tests => 1 + 2 * keys(%rand) + 3	 * keys %tests;
+plan tests => 1 + 1 + 2 * keys(%rand) + 3	 * keys %tests;
 
 is(rpn('TIME'), time, 'time???');
 

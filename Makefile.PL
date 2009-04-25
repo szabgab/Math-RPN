@@ -15,6 +15,7 @@ requires 'AutoLoader' => '0';
 
 test_requires 'Test::More' => '0.47';
 test_requires 'Test::Warn' => '0';
+test_requires 'Test::NoWarnings' => '0';
 
 WriteAll;
 
