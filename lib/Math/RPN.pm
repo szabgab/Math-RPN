@@ -9,7 +9,7 @@ require Exporter;
 
 @ISA     = qw(Exporter);
 @EXPORT  = qw( rpn );
-$VERSION = '1.09';
+$VERSION = '1.11';
 
 sub rpn {
     my $convr = join( ",", @_ );    # Get all the expressions
