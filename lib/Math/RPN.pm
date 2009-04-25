@@ -151,7 +151,7 @@ sub rpn {
             push( @stack, ( int( pop(@stack) ) | int( pop(@stack) ) ) );
         }
 
-        # Added XOR, but PERL's xor seems broken... Experimental.
+        # Added XOR, but Perl's xor seems broken... Experimental.
         elsif ( $_ eq "XOR" ) {
             unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) ) {
                 @stack = (undef);
@@ -471,7 +471,7 @@ unexpected results.  For example, the expression "5,3,grandma,+,*"
 would produce 15 because 5*(3+0) is how it would end up
 evaluated.  That is, 5 would be pushed onto the stack, then
 3, then "grandma".  Next, + is evaluated, so 3+"grandma"
-is evaluated.  PERL evaluates "grandma" to be numerically 0,
+is evaluated.  Perl evaluates "grandma" to be numerically 0,
 so 3 is pushed back onto the stack.  Next, the * multiplies
 the top two items of the stack [5][3], producing 15, which
 is pushed back onto the stack.
@@ -577,7 +577,7 @@ would be evaluated and the result placed on the stack.
 
 The boolean operator xor is incorporated into the code, but is not
 tested.  It is believed at this time that the underlying xor functionality
-in PERL may be broken, so the operator is considered strictly experimental.
+in Perl may be broken, so the operator is considered strictly experimental.
 Use it at your own risk.  The xor operator is not otherwise documented.
 
 
