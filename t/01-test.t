@@ -67,7 +67,8 @@ my %rand = (
 	"100,LRAND" => "0<x<100",
 );
 
-plan tests => 1 + 2 * keys(%rand) + keys %tests;
+
+plan tests => 1 + 2 * keys(%rand) + 3	 * keys %tests;
 
 is(rpn('TIME'), time, 'time???');
 
@@ -79,7 +80,19 @@ foreach my $expr (sort keys %tests) {
 	$expect = int($expect*10000+.5) / 10000;
 	$result = int($result*10000+.5) / 10000;
 	is $result, $expect, $expr;
+	
+	
+	my @expr = split /,/, $expr;
+	my $res = rpn(@expr);
+	$res =  int($res*10000+.5) / 10000;
+	is $result, $expect, $expr;
+	
+	my @result = rpn($expr);
+	$result[0] = int($result[0] * 10000 +.5) / 10000;
+	is_deeply \@result, [$expect], "$expr expect list";
 }
+
+
 foreach my $expr (keys %rand) {
 	my $result = rpn($expr);
 
