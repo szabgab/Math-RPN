@@ -7,6 +7,8 @@ use Test::NoWarnings;
 
 use Math::RPN;
 
+# L<Math::RPN/EXAMPLES>
+
 my %tests = (
 	"5,3,+,  8,3,-     ,*,  2,/, 3,%, 6, POW, SQRT" => 8,
 
