@@ -410,7 +410,7 @@ __END__
 
 =head1 NAME
 
-RPN - Perl extension for Reverse Polish Math Expression Evaluation
+Math::RPN - Perl extension for Reverse Polish Math Expression Evaluation
 
 =head1 SYNOPSIS
 
