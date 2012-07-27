@@ -1,5 +1,6 @@
 *.swp
 MANIFEST
+MANIFEST.bak
 Makefile
 Makefile.old
 blib/
@@ -10,3 +11,4 @@ MYMETA.yml
 MYMETA.json
 inc/
 cover_db/
+Math-RPN-*
