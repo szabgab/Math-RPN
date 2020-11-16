@@ -32,3 +32,12 @@ jobs:
           perl Makefile.PL
           make
           make test
+
+    - name: Show content of log files on Linux
+      if: ${{ failure() && startsWith( 'ubuntu-', matrix.runner )  }}
+      run: cat /home/runner/.cpanm/work/*/build.log
+
+    - name: Show content of log files on Mac
+      if: ${{ failure() && startsWith( 'ubuntu-', matrix.runner )  }}
+      run: cat /Users/runner/.cpanm/work/*/build.log
+
