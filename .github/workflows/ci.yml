@@ -28,7 +28,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-          #cpanm --notest Module::Install
+          cpanm --notest Module::Install
           cpanm --installdeps --notest .
 
     - name: Regular Tests
