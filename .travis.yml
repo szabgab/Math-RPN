@@ -1,8 +1,0 @@
-branches:
-  except:
-    - gh-pages
-language: perl
-perl:
-#  - "5.32"
-  - "5.30"
-  - "5.20"
